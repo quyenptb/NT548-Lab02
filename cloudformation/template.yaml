@@ -29,7 +29,7 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       CidrBlock: 10.1.1.0/24
-      AvailabilityZone: us-east-1a
+      AvailabilityZone: !Select [ 0, !GetAZs "" ]
       MapPublicIpOnLaunch: true
 
   # 4. Route Table
