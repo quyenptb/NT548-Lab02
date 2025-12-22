@@ -1,0 +1,15 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - pip install cfn-lint
+  build:
+    commands:
+      - echo "Running cfn-lint..."
+      - cfn-lint cloudformation/template.yaml
+      - echo "Template is valid!"
+artifacts:
+  files:
+    - cloudformation/template.yaml
