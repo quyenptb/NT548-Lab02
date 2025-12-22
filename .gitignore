@@ -1,0 +1,21 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Secrets & Keys
+*.pem
+*.key
+awscliv2.zip
+.env
+
+# OS files
+.DS_Store
+
+# Jenkins data (Nặng và nhạy cảm)
+jenkins_env/jenkins_home/
+jenkins_env/secrets/
+
+# Loại bỏ các file log của Jenkins
+*.log
