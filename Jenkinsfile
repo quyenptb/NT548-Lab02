@@ -1,27 +1,53 @@
 pipeline {
     agent any
-    
+
+    // Khai báo công cụ đã cấu hình trong Jenkins -> Tools
+    tools {
+        maven 'Maven3' 
+    }
+
     environment {
-        // Khớp với tên đã đặt trong Global Tool Configuration
-        SCANNER_HOME = tool 'sonar-scanner' 
+        // Biến môi trường kết nối
+        SCANNER_HOME = tool 'sonar-scanner'
+        
+        // Cấu hình mạng Docker
+        DOCKER_NETWORK = 'devops-net'
+        
+        // Địa chỉ các service trong mạng Docker
+        KAFKA_HOST = 'kafka'
+        KAFKA_PORT = '29092'  // Port container nội bộ
+        EUREKA_HOST = 'service-discovery'
+        //POSTGRES_HOST = 'host.docker.internal'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Thay link git của cậu vào đây nếu Jenkins không tự nhận
                 checkout scm
+            }
+        }
+
+        stage('Build & Test (Maven)') {
+            steps {
+                script {
+                    echo "--- Building Project with Maven ---"
+                    // Skip test for now
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                // Khớp với tên trong Configure System
-                withSonarQubeEnv('sonar-server') { 
+                echo "--- Analyzing with SonarQube ---"
+                withSonarQubeEnv('sonar-server') {
                     sh """
                     ${SCANNER_HOME}/bin/sonar-scanner \
-                    -Dsonar.projectKey=my-microservice \
-                    -Dsonar.sources=./app \
+                    -Dsonar.projectKey=ecommerce-microservices \
+                    -Dsonar.projectName='Ecommerce Microservices' \
+                    -Dsonar.sources=. \
+                    -Dsonar.java.binaries=target/classes \
+                    -Dsonar.exclusions=**/*.xml,**/*.html \
                     -Dsonar.host.url=http://sonarqube:9000 \
                     -Dsonar.login=$SONAR_AUTH_TOKEN
                     """
@@ -29,19 +55,61 @@ pipeline {
             }
         }
 
-        stage('Build & Deploy Docker') {
+        stage('Build Docker Images') {
             steps {
                 script {
-                    // Build Image
-                    sh 'docker build -t my-microservice:v1 ./app'
+                    echo "--- Building Docker Images ---"
+                    // Build Service Discovery
+                    sh 'docker build -t my-discovery:v1 ./service-discovery'
                     
-                    // Xóa container cũ nếu tồn tại (để chạy lại không lỗi)
-                    sh 'docker rm -f lab02-app || true'
-                    
-                    // Deploy container mới (map port 3000)
-                    sh 'docker run -d -p 3000:3000 --name lab02-app my-microservice:v1'
+                    // Build Order Service
+                    sh 'docker build -t my-order:v1 ./order-service'
                 }
             }
+        }
+
+        stage('Deploy Microservices') {
+            steps {
+                script {
+                    echo "--- Deploying Containers ---"
+                    
+                    // 1. Rm old container
+                    sh 'docker rm -f discovery order || true'
+
+                    // 2. Run Service Discovery
+                    // Map port 8761 để xem UI trên Windows
+                    sh """
+                        docker run -d --name discovery \\
+                        --network ${DOCKER_NETWORK} \\
+                        -p 8761:8761 \\
+                        my-discovery:v1
+                    """
+
+                    echo "Waiting for Service Discovery to warm up..."
+                    sleep 15 // Wait 15 for Euruka running
+
+                    // 3. Run Order Service
+                    // Override config in application.yml
+                    sh """
+                        docker run -d --name order \\
+                        --network ${DOCKER_NETWORK} \\
+                        -p 8082:8082 \\
+                        -e KAFKA_HOST=${KAFKA_HOST} \\
+                        -e KAFKA_PORT=${KAFKA_PORT} \\
+                        -e EUREKA_HOST=${EUREKA_HOST} \\
+                        my-order:v1
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }

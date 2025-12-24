@@ -1,21 +1,67 @@
-# Terraform
+# --- Terraform ---
 .terraform/
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
 
-# Secrets & Keys
+# --- Secrets & Keys ---
 *.pem
 *.key
 awscliv2.zip
 .env
+supabase/.env
+supabase/config.json
 
-# OS files
-.DS_Store
-
-# Jenkins data (Nặng và nhạy cảm)
+# --- Jenkins data ---
 jenkins_env/jenkins_home/
 jenkins_env/secrets/
 
-# Loại bỏ các file log của Jenkins
+# --- Build tools ---
+target/
+build/
+out/
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
 *.log
+logs/
+log/
+
+# --- Runtime files ---
+*.pid
+*.seed
+*.tmp
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- Java ---
+*.class
+*.jar
+*.war
+*.ear
+
+# --- Test reports ---
+surefire-reports/
+test-output/
+
+# --- Node ---
+node_modules/
+dist/
+
+# --- Misc (file thừa) ---
+tools/
+exported_source_code/
