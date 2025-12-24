@@ -65,3 +65,5 @@ dist/
 # --- Misc (file thừa) ---
 tools/
 exported_source_code/
+
+.gitignore
