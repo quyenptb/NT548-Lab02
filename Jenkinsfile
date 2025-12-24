@@ -32,7 +32,7 @@ pipeline {
                 script {
                     echo "--- Building Project with Maven ---"
                     // Skip test for now
-                    sh 'mvn clean package -DskipTests'
+                    sh 'cd ecommerce-system && mvn clean package -DskipTests'
                 }
             }
         }
