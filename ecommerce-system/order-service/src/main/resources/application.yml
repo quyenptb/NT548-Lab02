@@ -7,9 +7,9 @@ spring:
   
   # KẾT NỐI SUPABASE
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASS}
+    url: jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.fjcsbzomnyncdjefnwoa
+    password: PhanTanMinh123%
     driver-class-name: org.postgresql.Driver
   
   jpa:

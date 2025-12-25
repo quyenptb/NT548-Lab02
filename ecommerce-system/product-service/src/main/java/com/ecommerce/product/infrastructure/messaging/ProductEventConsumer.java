@@ -1,7 +1,8 @@
 package com.ecommerce.product.infrastructure.messaging;
 
 import com.ecommerce.product.application.service.ProductService;
-import com.ecommerce.order.application.event.OrderCreatedEvent;
+import com.ecommerce.product.common.event.OrderCreatedEvent;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -22,7 +23,7 @@ public class ProductEventConsumer {
     )
     @Transactional // Quan trọng: Đảm bảo toàn bộ việc trừ kho nằm trong 1 transaction DB
     public void handleOrderCreatedEvent(@Payload OrderCreatedEvent event) {
-        log.info("Received OrderCreatedEvent for order: {}", event.getOrderId());
+        log.info("Received OrderCreatedEvent for order: {}", event.getId());
 
         try {
             // Xử lý tuần tự, nếu 1 cái lỗi sẽ nhảy xuống catch
@@ -31,7 +32,7 @@ public class ProductEventConsumer {
                 log.info("Reserved {} units of product: {}", item.getQuantity(), item.getProductId());
             }
         } catch (Exception e) {
-            log.error("Failed to reserve stock for order {}. Rolling back transaction.", event.getOrderId(), e);
+            log.error("Failed to reserve stock for order {}. Rolling back transaction.", event.getId(), e);
             
             // QUAN TRỌNG: Phải ném lỗi ra ngoài để Transaction Manager rollback lại các item đã trừ trước đó.
             // Nếu nuốt lỗi (try-catch mà không throw), transaction sẽ commit -> sai lệch kho.

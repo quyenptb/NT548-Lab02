@@ -1,8 +1,9 @@
 package com.ecommerce.notification.application.service;
 
-import com.ecommerce.order.domain.model.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import com.ecommerce.notification.common.model.Order;
 
 import java.math.BigDecimal;
 import java.util.UUID;

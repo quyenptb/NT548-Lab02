@@ -1,8 +1,9 @@
 package com.ecommerce.notification.infrastructure.messaging;
 
-import com.ecommerce.customer.application.event.CustomerCreatedEvent;
-import com.ecommerce.order.application.event.OrderCreatedEvent;
-import com.ecommerce.order.application.event.OrderStatusChangedEvent;
+
+import com.ecommerce.notification.common.event.CustomerCreatedEvent;
+import com.ecommerce.notification.common.event.OrderCreatedEvent;
+import com.ecommerce.notification.common.event.OrderStatusChangedEvent;
 import com.ecommerce.notification.application.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +38,11 @@ public class NotificationEventConsumer {
             groupId = "${spring.kafka.consumer.group-id}"
     )
     public void handleOrderCreatedEvent(@Payload OrderCreatedEvent event) {
-        log.info("Received OrderCreatedEvent for order: {}", event.getOrderId());
+        log.info("Received OrderCreatedEvent for order: {}", event.getId());
         
         // Send order confirmation
         notificationService.sendOrderConfirmation(
-                event.getOrderId(),
+                event.getId(),
                 event.getCustomerId(),
                 event.getTotalAmount()
         );
