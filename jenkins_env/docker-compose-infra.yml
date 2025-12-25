@@ -68,6 +68,7 @@ services:
 networks:
   devops-net:
     driver: bridge
+    name: devops-net
 
 volumes:
   sonarqube_data:
