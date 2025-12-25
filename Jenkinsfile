@@ -44,8 +44,8 @@ pipeline {
                     ${SCANNER_HOME}/bin/sonar-scanner \
                     -Dsonar.projectKey=ecommerce-microservices \
                     -Dsonar.projectName='Ecommerce Microservices' \
-                    -Dsonar.sources=. \
-                    -Dsonar.java.binaries=target/classes \
+                    -Dsonar.sources=ecommerce-system/src/main/java \
+                    -Dsonar.java.binaries=ecommerce-system/target/classes \
                     -Dsonar.exclusions=**/*.xml,**/*.html
                     """
                 }
