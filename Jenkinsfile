@@ -1,23 +1,21 @@
 pipeline {
     agent any
 
-    // Khai báo công cụ đã cấu hình trong Jenkins -> Tools
     tools {
         maven 'Maven3' 
+        'sonar-scanner' 'sonar-scanner' 
     }
 
     environment {
-        // Biến môi trường kết nối
         SCANNER_HOME = tool 'sonar-scanner'
         
-        // Cấu hình mạng Docker
         DOCKER_NETWORK = 'devops-net'
         
-        // Địa chỉ các service trong mạng Docker
+
         KAFKA_HOST = 'kafka'
-        KAFKA_PORT = '29092'  // Port container nội bộ
+        KAFKA_PORT = '29092'
         EUREKA_HOST = 'service-discovery'
-        //POSTGRES_HOST = 'host.docker.internal'
+         
     }
 
     stages {
@@ -31,7 +29,6 @@ pipeline {
             steps {
                 script {
                     echo "--- Building Project with Maven ---"
-                    // Skip test for now
                     sh 'cd ecommerce-system && mvn clean package -DskipTests'
                 }
             }
@@ -40,6 +37,9 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo "--- Analyzing with SonarQube ---"
+                script {
+                    sh 'getent hosts sonarqube || echo "Cannot find host sonarqube"'
+                }
                 withSonarQubeEnv('sonar-server') {
                     sh """
                     ${SCANNER_HOME}/bin/sonar-scanner \
@@ -47,9 +47,7 @@ pipeline {
                     -Dsonar.projectName='Ecommerce Microservices' \
                     -Dsonar.sources=. \
                     -Dsonar.java.binaries=target/classes \
-                    -Dsonar.exclusions=**/*.xml,**/*.html \
-                    -Dsonar.host.url=http://sonarqube:9000 \
-                    -Dsonar.login=$SONAR_AUTH_TOKEN
+                    -Dsonar.exclusions=**/*.xml,**/*.html
                     """
                 }
             }
@@ -59,10 +57,7 @@ pipeline {
             steps {
                 script {
                     echo "--- Building Docker Images ---"
-                    // Build Service Discovery
                     sh 'docker build -t my-discovery:v1 ./service-discovery'
-                    
-                    // Build Order Service
                     sh 'docker build -t my-order:v1 ./order-service'
                 }
             }
@@ -73,30 +68,30 @@ pipeline {
                 script {
                     echo "--- Deploying Containers ---"
                     
-                    // 1. Rm old container
+                    // Delete old container if any
                     sh 'docker rm -f discovery order || true'
 
-                    // 2. Run Service Discovery
-                    // Map port 8761 để xem UI trên Windows
+                    // 1. Run Service Discovery
                     sh """
-                        docker run -d --name discovery \\
-                        --network ${DOCKER_NETWORK} \\
-                        -p 8761:8761 \\
+                        docker run -d --name discovery \
+                        --network ${DOCKER_NETWORK} \
+                        -p 8761:8761 \
                         my-discovery:v1
                     """
 
-                    echo "Waiting for Service Discovery to warm up..."
-                    sleep 15 // Wait 15 for Euruka running
+                    echo "Waiting 15s for Service Discovery to warm up..."
+                    sleep 15 
 
-                    // 3. Run Order Service
-                    // Override config in application.yml
+                    // 2. Run Order Service
+                    // --restart unless-stopped giúp nó tự chạy lại nếu crash
                     sh """
-                        docker run -d --name order \\
-                        --network ${DOCKER_NETWORK} \\
-                        -p 8082:8082 \\
-                        -e KAFKA_HOST=${KAFKA_HOST} \\
-                        -e KAFKA_PORT=${KAFKA_PORT} \\
-                        -e EUREKA_HOST=${EUREKA_HOST} \\
+                        docker run -d --name order \
+                        --network ${DOCKER_NETWORK} \
+                        --restart unless-stopped \
+                        -p 8082:8082 \
+                        -e KAFKA_HOST=${KAFKA_HOST} \
+                        -e KAFKA_PORT=${KAFKA_PORT} \
+                        -e EUREKA_HOST=${EUREKA_HOST} \
                         my-order:v1
                     """
                 }
@@ -109,7 +104,7 @@ pipeline {
             echo 'Pipeline executed successfully!'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Pipeline failed! Check logs.'
         }
     }
 }
