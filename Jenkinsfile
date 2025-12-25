@@ -13,7 +13,7 @@ pipeline {
 
         KAFKA_HOST = 'kafka'
         KAFKA_PORT = '29092'
-        EUREKA_HOST = 'service-discovery'
+        EUREKA_HOST = 'discovery'
          
     }
 
@@ -57,8 +57,8 @@ pipeline {
             steps {
                 script {
                     echo "--- Building Docker Images ---"
-                    sh 'docker build -t my-discovery:v1 ./service-discovery'
-                    sh 'docker build -t my-order:v1 ./order-service'
+                    sh 'docker build -t my-discovery:v1 ./ecommerce-system/service-discovery'
+                    sh 'docker build -t my-order:v1 ./ecommerce-system/order-service'
                 }
             }
         }
