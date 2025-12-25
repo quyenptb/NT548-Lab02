@@ -3,7 +3,6 @@ pipeline {
 
     tools {
         maven 'Maven3' 
-        'sonar-scanner' 'sonar-scanner' 
     }
 
     environment {
