@@ -222,4 +222,5 @@ Yêu cầu: Máy đã cài **Docker** và **Docker Compose**.
     
 *   **Eureka Server:** Truy cập http://localhost:8761, kiểm tra danh sách _Instances currently registered with Eureka_, phải thấy ORDER-SERVICE.
     
-*   bashcurl http://localhost:8082/api/orders# Hoặc endpoint health check tương ứng
+*   http://localhost:8082/api/orders#
+
